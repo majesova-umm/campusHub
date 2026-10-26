@@ -1,34 +1,69 @@
-# Harness mínimo para Next.js y Tailwind CSS
+# Campus Hub
 
-Variante documental del [harness mínimo](../minimal/README.md), preparada para
-TypeScript, React, Next.js con App Router y Tailwind CSS. Contiene instrucciones
-para el asistente y una propuesta de arquitectura; no incluye una aplicación.
+Panel académico con React, Next.js App Router, TypeScript estricto y Tailwind CSS.
+Conserva el diseño de Figma, la fuente Fira Sans local y los SVG originales.
 
-## Cómo usarlo
+## Ejecutar
 
-1. Copia `AGENTS.md` a la raíz de tu aplicación y `docs/architecture.md` a su
-   carpeta `docs/`. Si ya existen, fusiona el contenido manualmente.
-2. Completa el propósito del proyecto y ajusta la arquitectura a sus rutas reales.
-3. Confirma las versiones, el gestor de dependencias y los scripts en `package.json`.
-   La guía propone npm; adáptala si el proyecto ya usa otro gestor.
-4. Pide una tarea pequeña y revisa tanto el resultado como las verificaciones.
+Requiere Node.js 22.18+ y npm. Esta versión mínima permite ejecutar las pruebas
+sobre TypeScript sin instalar otro ejecutor.
 
-El instalador de la raíz sigue usando `template/`; esta variante se copia manualmente.
+```sh
+npm ci
+npm run dev
+```
 
-## Ejercicio
+Abre http://127.0.0.1:5173. Se conserva el origen anterior para mantener el acceso
+a las tareas de localStorage. No cambies a localhost si quieres usar esos mismos datos.
 
-Pide: «Crea una página de catálogo con tarjetas y un filtro por nombre.
-Usa datos de ejemplo, sigue `AGENTS.md` y conserva la obtención de datos en el
-servidor. Lleva al cliente solo la interacción del filtro».
+Para producción local:
 
-Comprueba que el filtro funciona, que el contenido se adapta a móvil y que
-el asistente reporta las verificaciones que realmente pudo ejecutar.
+```sh
+npm run build
+npm start
+```
 
-## Referencias
+## Organización y arnés
 
-- [Instalación de Next.js](https://nextjs.org/docs/app/getting-started/installation).
-- [Server y Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components).
-- [Tailwind CSS con Next.js](https://tailwindcss.com/docs/installation/framework-guides/nextjs).
+[AGENTS.md](AGENTS.md) define las convenciones. [docs/architecture.md](docs/architecture.md)
+documenta componentes de servidor y cliente, hidratación, tipos y persistencia.
 
-Consulta la guía correspondiente a la versión instalada antes de cambiar
-la configuración; la integración de Tailwind varía entre versiones principales.
+- `src/app/`: layout, página y tema Tailwind.
+- `src/components/`: interfaz tipada; DashboardClient coordina la interacción.
+- `src/hooks/useTasks.ts`: estado y ciclo de persistencia.
+- `src/lib/`: dominio y adaptador de localStorage.
+- `src/data/`: ejemplos iniciales.
+- `public/assets/`: SVG locales.
+
+## Comportamiento
+
+El botón Agregar tarea y Enter crean tareas pendientes, actualizan el contador y
+conservan los datos al recargar cuando localStorage está disponible. El formulario
+rechaza títulos vacíos. El buscador filtra títulos y materias. Las tareas nuevas
+no tienen materia ni fecha asignadas.
+
+No hay backend ni base de datos. Los indicadores académicos y las actividades son
+ejemplos. Inicio y Tareas enlazan a secciones; los demás destinos no tienen vistas
+definidas. La migración no agrega pantallas ni elementos visuales.
+
+## Verificación
+
+```sh
+npm run typecheck
+npm test
+npm run build
+```
+
+Con el servidor activo y Google Chrome instalado:
+
+```sh
+npm run test:smoke
+```
+
+La prueba usa BASE_URL si está definido; de lo contrario, http://127.0.0.1:5173.
+Verifica cinco anchos, imágenes, creación, búsqueda, persistencia, almacenamiento
+corrupto y lista vacía. Las capturas se guardan en el directorio temporal del sistema.
+No hay script de lint configurado.
+
+Compara manualmente 1440 × 1024 y 390 × 844 con Figma y prueba títulos largos,
+navegación con Tab y acceso a todas las tareas desde móvil.

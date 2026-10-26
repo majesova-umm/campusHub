@@ -1,49 +1,82 @@
-# Arquitectura: Next.js y Tailwind CSS
+# Arquitectura de Campus Hub
 
-Esta es la estructura propuesta para una aplicación pequeña con App Router.
-Adapta las rutas al proyecto real y mantén el documento actualizado.
+Campus Hub gestiona tareas de estudiantes. Usa React 19, Next.js 16 con App Router,
+TypeScript estricto, Tailwind CSS 4 y npm. Las versiones exactas están fijadas en
+package-lock.json. Esta migración sustituye Vite y los contratos JSDoc por rutas
+App Router y tipos TypeScript; no incorpora base de datos.
 
 ## Organización
 
 | Ruta | Responsabilidad |
 | --- | --- |
-| `src/app/layout.tsx` | Layout raíz y carga del CSS global. |
-| `src/app/page.tsx` | Página de inicio. Cada ruta adicional vive en su carpeta dentro de `app/`. |
-| `src/app/globals.css` | Entrada de Tailwind y estilos globales del proyecto. |
-| `src/components/` | Componentes de interfaz reutilizables. |
-| `src/lib/` | Lógica del dominio, utilidades y acceso a datos del servidor, separados por responsabilidad. |
-| `public/` | Imágenes y otros archivos públicos. |
+| `src/app/layout.tsx` | Layout de servidor, idioma, metadatos, fuentes locales y CSS global. |
+| `src/app/page.tsx` | Página de servidor: compone navegación, paneles estáticos y cliente interactivo. |
+| `src/app/globals.css` | Tema Tailwind, tokens y clases de componentes con @apply; reglas específicas del diseño. |
+| `src/components/DashboardClient.tsx` | Límite cliente: búsqueda, estado de tareas e indicadores dependientes del estado. |
+| `src/components/PageHeader.tsx` | Campo de búsqueda controlado y saludo. |
+| `src/components/TaskForm.tsx` | Estado local del formulario, validación y anuncio accesible. |
+| `src/components/Tasks.tsx` | Panel y tarjetas de tareas con props tipadas. |
+| `src/components/Navigation.tsx` | Navegación y perfil renderizados desde el servidor. |
+| `src/components/Dashboard.tsx` | Indicadores y paneles visuales sin estado. |
+| `src/components/Visuals.tsx` | Marca, SVG y estados con variantes literales. |
+| `src/hooks/useTasks.ts` | Coordina estado cliente, hidratación y persistencia. |
+| `src/lib/tasks.ts` | Task, TaskStatus y reglas de validación, creación, búsqueda y conteo. |
+| `src/lib/taskStorage.ts` | Adaptador de localStorage tolerante a datos inválidos o acceso bloqueado. |
+| `src/data/initialTasks.ts` | Datos de ejemplo serializables enviados desde la página. |
+| `public/assets/` | SVG originales de Figma. |
+| `tests/tasks.test.mjs` | Pruebas de dominio y almacenamiento; Node ejecuta directamente los módulos TypeScript. |
+| `tests/smoke.mjs` | Prueba Chrome de interfaz, persistencia y adaptación. |
 
-Si el proyecto usa `app/` en la raíz, conserva esa estructura; no lo muevas
-a `src/` solo para coincidir con esta guía. Crea carpetas cuando las necesites.
+## Servidor y cliente
 
-## Flujo principal
+Layout y página son Server Components. La página pasa datos serializables al
+DashboardClient y los paneles de progreso y actividad como slots ReactNode. La
+navegación y los paneles estáticos no requieren estado cliente. Los módulos
+importados por DashboardClient forman parte de su árbol cliente; no se agrega
+`use client` a cada componente de presentación. PageHeader y TaskForm declaran
+su interactividad; useTasks solo se utiliza en el cliente.
 
-1. Next.js resuelve la URL y renderiza el layout y la página correspondientes.
-2. Los Server Components obtienen los datos necesarios del servidor, si los hay.
-3. Los Client Components manejan las interacciones que requieren el navegador.
-4. Tailwind aplica los estilos a partir de las clases usadas en los componentes.
+No hay secretos, endpoints ni mutaciones del servidor. Si se introducen, deberán
+validarse entradas y permisos en el servidor. Los tipos TypeScript no sustituyen
+la validación de datos externos.
 
-Ejemplo: una página de catálogo obtiene los productos en el servidor y pasa
-datos serializables a un componente cliente que permite filtrarlos.
+## Persistencia e hidratación
 
-## Límites entre partes
+Se conserva la clave `campus-hub-tasks-v1`, sin migraciones ni borrado de tareas.
+El servidor y el primer render cliente usan los mismos ejemplos. Tras hidratar,
+useTasks recupera localStorage y activa isReady; solo entonces permite el efecto
+de guardado. Esto evita divergencias de hidratación y sobrescribir datos guardados
+con los ejemplos iniciales. La interfaz expone data-tasks-ready para las pruebas.
 
-- Las páginas componen la vista; la lógica de negocio reutilizable vive en `src/lib/`.
-- Los módulos que leen secretos o datos privados son exclusivos del servidor.
-  Protégelos con `server-only` cuando corresponda; no los importes desde componentes cliente.
-- Las props que cruzan del servidor al cliente deben ser serializables por React.
-- Añade Route Handlers o Server Actions solo cuando necesites endpoints o mutaciones;
-  valida entradas y permisos en el servidor.
-- No hay persistencia definida inicialmente. Si la aplicación guarda datos,
-  documenta aquí el almacenamiento y su flujo antes de implementarlos.
+Los registros deben satisfacer Task y tener ids únicos. Una lista vacía es válida.
+Ante datos ausentes, corruptos o storage bloqueado, se usan los ejemplos. Si falla
+el guardado, la sesión sigue funcionando en memoria. No hay sincronización remota.
 
-## Decisiones y motivos
+localStorage pertenece al origen del navegador. Se conserva 127.0.0.1:5173 para
+que las tareas creadas con Vite sigan disponibles en ese mismo origen. Cambiar
+host, puerto o protocolo implica otro almacenamiento local.
 
-- App Router permite organizar las rutas con sus layouts y páginas.
-- Server Components por defecto mantienen la obtención de datos en el servidor
-  y reservan el JavaScript del cliente para la interacción necesaria.
-- Tailwind concentra los estilos habituales en clases de utilidad; las reglas
-  globales y los valores compartidos viven en la configuración CSS del proyecto.
-- No se incluyen bibliotecas de estado, componentes ni base de datos hasta que
-  haya una necesidad concreta.
+## Reglas y estilos
+
+El dominio no depende de React ni del navegador. TaskForm valida el título y emite
+onAdd; useTasks crea una tarea pendiente con UUID. Los títulos se recortan, admiten
+hasta 200 caracteres y no pueden estar vacíos. No se inventan materia ni fecha.
+El contador incluye todas las tareas no completadas, independientemente del filtro.
+
+Tailwind se integra mediante @tailwindcss/postcss. El tema expone los colores CSS
+existentes, las clases semánticas usan @apply y las reglas específicas conservan
+las medidas originales. Se importan tema y utilidades sin Preflight para mantener
+el reset existente y la geometría de los SVG. El estilo y los breakpoints de Figma
+se conservan; no se añaden componentes visuales por la migración.
+
+Calendario, Materias, Mensajes, Ajustes y notificaciones continúan sin flujos
+definidos. Progreso, fechas, promedio y actividades son ejemplos.
+
+## Verificación
+
+- `npm run typecheck`: TypeScript estricto.
+- `npm test`: reglas y almacenamiento con node:test.
+- `npm run build`: compilación y prerender de Next.js.
+- `npm run test:smoke`: servidor activo, Chrome instalado; verifica anchos de 320,
+  390, 768, 1024 y 1440 px, recursos, creación, búsqueda, persistencia, datos
+  corruptos, estado vacío y ausencia de errores de ejecución o hidratación.

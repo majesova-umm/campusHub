@@ -11,7 +11,9 @@
 - npm como gestor de dependencias; conserva `package-lock.json`.
 - Usa las versiones declaradas en `package.json` y el archivo de bloqueo. No actualices versiones principales ni agregues tecnologías sin consultar.
 - Almacenamiento: sin base de datos por defecto. Define la persistencia en la arquitectura antes de incorporarla.
-- Si adoptas esta guía en un proyecto existente, ajusta el gestor y las convenciones a su configuración real.
+- La migración a este stack ya está autorizada y realizada. Conserva App Router, TypeScript estricto y Tailwind; no vuelvas a Vite o JavaScript sin una solicitud explícita.
+- Usa Node.js 22.18+; las pruebas de dominio ejecutan TypeScript directamente con Node.
+- La persistencia actual es localStorage, documentada en la arquitectura. Conserva su clave y protege los datos durante la hidratación.
 
 ## Estándares de código
 - Usa componentes y tipos con nombres en PascalCase; funciones y variables en camelCase.
@@ -21,7 +23,7 @@
 - Mantén secretos y acceso a datos privados en el servidor; no los expongas mediante variables `NEXT_PUBLIC_*`.
 - Usa HTML semántico, etiquetas en formularios y estados de foco visibles.
 - Usa clases completas de Tailwind: evita construirlas como `bg-${color}-500`; mapea variantes a clases literales.
-- Reutiliza los colores, espacios y estilos definidos en el proyecto; conserva su configuración de Tailwind.
+- Reutiliza los colores y espacios de `src/app/globals.css`. Tailwind 4 se configura en CSS y PostCSS; las clases semánticas pueden usar `@apply`. Conserva los SVG y las medidas del diseño.
 - Valida entradas en el servidor para operaciones del servidor y muestra errores comprensibles al usuario.
 - Al cambiar comportamiento, agrega o ajusta pruebas si el proyecto ya tiene una suite.
 
