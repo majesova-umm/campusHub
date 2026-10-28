@@ -137,8 +137,49 @@ try {
     assert.equal(await renamed.count(),0);
     await page.locator('.subject-unassigned').filter({hasText:`Tarea de ${subject}`}).waitFor();
   }
+  for (const width of [1440,390,320]) {
+    await page.setViewportSize({width,height:844});
+    await page.evaluate(()=>localStorage.removeItem('campus-hub-messages-v1'));
+    const nav = page.getByRole('navigation',{name:width === 1440 ? 'Navegación principal' : 'Navegación móvil',exact:true});
+    await nav.getByRole('link',{name:'Mensajes',exact:true}).click();
+    await page.waitForURL('**/mensajes');
+    await page.locator('[data-tasks-ready="true"]').waitFor();
+    assert.equal(await nav.getByRole('link',{name:'Mensajes',exact:true}).getAttribute('aria-current'),'page');
+    await page.locator('.messages-heading p').filter({hasText:'2 sin leer'}).waitFor();
+    await page.getByRole('button',{name:/Prof\. Laura Méndez/}).click();
+    await page.locator('.messages-heading p').filter({hasText:'0 sin leer'}).waitFor();
+    const textbox = page.getByRole('textbox',{name:'Mensaje para Prof. Laura Méndez'});
+    await page.getByRole('button',{name:'Enviar',exact:true}).click();
+    await page.getByRole('alert').filter({hasText:'Escribe un mensaje'}).waitFor();
+    await textbox.fill(`Ya lo subí ${width}`);
+    await textbox.press('Enter');
+    await page.locator('.message.mine').filter({hasText:`Ya lo subí ${width}`}).waitFor();
+    await page.locator('#new-conversation').fill('prof. laura méndez');
+    await page.getByRole('button',{name:'Iniciar'}).click();
+    await page.getByRole('alert').filter({hasText:'Ya tienes'}).waitFor();
+    await page.locator('#new-conversation').fill(`Tutor ${width}`);
+    await page.getByRole('button',{name:'Iniciar'}).click();
+    await page.getByText('Aún no hay mensajes. Escribe el primero.').waitFor();
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'conversation-title');
+    await page.reload(); await page.locator('[data-tasks-ready="true"]').waitFor();
+    await page.getByRole('button',{name:/Prof\. Laura Méndez/}).click();
+    await page.locator('.message.mine').filter({hasText:`Ya lo subí ${width}`}).waitFor();
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,`Overflow en mensajes a ${width}`);
+    await page.screenshot({path:join(tmpdir(),`campus-mensajes-${width}.png`),fullPage:true});
+    await page.getByRole('button',{name:new RegExp(`Tutor ${width}`)}).click();
+    await page.getByRole('button',{name:'Eliminar conversación'}).click();
+    await page.getByRole('button',{name:'Cancelar eliminación'}).click();
+    await page.getByRole('button',{name:'Eliminar conversación'}).click();
+    await page.getByRole('button',{name:'Confirmar eliminación'}).click();
+    assert.equal(await page.getByRole('button',{name:new RegExp(`Tutor ${width}`)}).count(),0);
+  }
+  await page.evaluate(()=>localStorage.setItem('campus-hub-messages-v1','{'));await page.reload();await page.locator('[data-tasks-ready="true"]').waitFor();
+  await page.locator('.messages-heading p').filter({hasText:'2 sin leer'}).waitFor();
+  await page.evaluate(()=>localStorage.setItem('campus-hub-messages-v1','[]'));await page.reload();await page.locator('[data-tasks-ready="true"]').waitFor();
+  await page.getByText('No tienes conversaciones. Inicia una nueva.').waitFor();
+  await page.goto(`${baseUrl}/materias`);await page.locator('[data-tasks-ready="true"]').waitFor();
   await page.evaluate(()=>localStorage.setItem('campus-hub-subjects-v1','{'));await page.reload();await page.locator('[data-tasks-ready="true"]').waitFor();
   await page.evaluate(()=>{localStorage.setItem('campus-hub-tasks-v1','[]');localStorage.setItem('campus-hub-subjects-v1','[]');});await page.reload();await page.locator('[data-tasks-ready="true"]').waitFor();
   await page.getByText('No tienes materias. Agrega tu primera materia.').waitFor();
-  assert.deepEqual(errors,[]);console.log('PASS: responsive widths, assets, empty input, button, Enter, counters, persistence, search, subjects, runtime errors.');
+  assert.deepEqual(errors,[]);console.log('PASS: responsive widths, assets, empty input, button, Enter, counters, persistence, search, subjects, messages, runtime errors.');
 } finally {await browser.close();}

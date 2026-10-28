@@ -29,11 +29,19 @@ App Router y tipos TypeScript; no incorpora base de datos.
 | `src/hooks/useSubjects.ts` | Estado, hidratación y persistencia de materias; propaga renombrado y eliminación a las tareas. |
 | `src/lib/subjects.ts` | Validación, combinación, resumen y asignación inmutable de materias. |
 | `src/lib/subjectStorage.ts` | Adaptador de localStorage de materias tolerante a datos inválidos. |
+| `src/app/mensajes/page.tsx` | Página de servidor de Mensajes; marca Mensajes como destino activo. |
+| `src/components/MessagesClient.tsx` | Límite cliente de `/mensajes`: selección, lectura y foco de la conversación. |
+| `src/components/Messages.tsx` | Lista, vista de conversación y formularios de mensajes con props tipadas. |
+| `src/hooks/useMessages.ts` | Estado, hidratación y persistencia de conversaciones. |
+| `src/lib/messages.ts` | Conversation, Message y reglas de validación, envío, lectura y eliminación. |
+| `src/lib/messageStorage.ts` | Adaptador de localStorage de mensajes tolerante a datos inválidos. |
+| `src/data/initialConversations.ts` | Conversaciones de ejemplo serializables. |
 | `src/lib/taskStorage.ts` | Adaptador de localStorage tolerante a datos inválidos o acceso bloqueado. |
 | `src/data/initialTasks.ts` | Datos de ejemplo serializables enviados desde la página. |
 | `public/assets/` | SVG originales de Figma. |
 | `tests/tasks.test.mjs` | Pruebas de dominio y almacenamiento; Node ejecuta directamente los módulos TypeScript. |
 | `tests/subjects.test.mjs` | Pruebas de dominio y almacenamiento de materias. |
+| `tests/messages.test.mjs` | Pruebas de dominio y almacenamiento de mensajes. |
 | `tests/smoke.mjs` | Prueba Chrome de interfaz, persistencia y adaptación. |
 
 ## Servidor y cliente
@@ -78,7 +86,7 @@ las medidas originales. Se importan tema y utilidades sin Preflight para mantene
 el reset existente y la geometría de los SVG. El estilo y los breakpoints de Figma
 se conservan; no se añaden componentes visuales por la migración.
 
-Mensajes, Ajustes y notificaciones continúan sin flujos
+Ajustes y notificaciones continúan sin flujos
 definidos. Progreso, fechas, promedio y actividades son ejemplos.
 
 ## Verificación
@@ -140,3 +148,24 @@ storage tras hidratar y solo guarda cuando está listo, igual que useTasks.
 
 Materias aparece en la navegación de escritorio. El diseño móvil no incluye su
 icono, por lo que la barra inferior se conserva y `/tareas` enlaza a Materias.
+
+## Mensajes
+
+`/mensajes` es una página de servidor que compone Navigation y MessagesClient.
+Es mensajería local: no hay backend, cuentas ni destinatarios reales, y la
+interfaz lo indica. Permite iniciar conversaciones con un contacto, leer y
+enviar mensajes, ver no leídos por conversación y en total, y eliminar una
+conversación con confirmación.
+
+Conversation contiene `id`, `contact`, `role?` y `messages`; Message contiene
+`id`, `author` (`me` o `contact`), `text` (máximo 1000 caracteres), `sentAt` ISO y
+`read?`. Se guardan en la clave `campus-hub-messages-v1`; ante datos ausentes o
+corruptos se usan los ejemplos y una lista vacía es válida. useMessages lee storage
+tras hidratar y solo guarda cuando está listo. Las fechas se formatean después de
+hidratar para evitar diferencias de zona horaria con el servidor.
+
+Abrir una conversación marca como leídos sus mensajes y mueve el foco a su título,
+lo que la hace visible en móvil, donde se muestra debajo de la lista. Enviar un
+mensaje mueve la conversación al inicio. Enter envía y Mayús + Enter agrega un
+salto de línea. Una mensajería real requeriría backend, autenticación y validación
+en el servidor; debe documentarse y aprobarse antes de incorporarla.
