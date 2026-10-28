@@ -604,4 +604,19 @@ background:var(--white);
 .calendar-day { min-height:52px; }
 }
 
+.subjects-panel { margin-top:var(--space-xl); }
+.subjects-panel>h2 { margin-bottom:var(--space-md); }
+.subject-card { display:grid; gap:var(--space-md); padding:12px 20px; border:1px solid var(--border); border-radius:12px; background:var(--white); }
+.subject-card.selected { background:var(--pale-blue); border-color:var(--action); }
+.subject-card .task-copy p { margin:2px 0 0; }
+.task-actions button[aria-pressed="true"] { border-color:var(--action); color:var(--action); font-weight:600; }
+.form-error { margin-top:var(--space-sm); color:var(--alert); font-size:13px; }
+.subject-select-label { display:block; font-size:13px; margin-top:var(--space-md); overflow-wrap:anywhere; }
+.subject-select-label select { display:block; font:inherit; width:100%; max-width:320px; min-height:44px; margin-top:4px; padding:8px; border:1px solid var(--border); border-radius:8px; background:var(--white); color:var(--ink); }
+.text-link { color:var(--action); font-weight:600; text-decoration:underline; }
+@media(max-width:767px) {
+.subjects-panel { padding:var(--space-md); }
+.subject-card { padding:var(--space-md); }
+}
+
 }

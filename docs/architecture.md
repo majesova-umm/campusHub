@@ -23,10 +23,17 @@ App Router y tipos TypeScript; no incorpora base de datos.
 | `src/components/Visuals.tsx` | Marca, SVG y estados con variantes literales. |
 | `src/hooks/useTasks.ts` | Coordina estado cliente, hidratación y persistencia. |
 | `src/lib/tasks.ts` | Task, TaskStatus y reglas de validación, creación, búsqueda y conteo. |
+| `src/app/materias/page.tsx` | Página de servidor de Materias; marca Materias como destino activo. |
+| `src/components/SubjectsClient.tsx` | Límite cliente de `/materias`: coordina useTasks y useSubjects. |
+| `src/components/Subjects.tsx` | Formulario, tarjeta y selector de materia con props tipadas. |
+| `src/hooks/useSubjects.ts` | Estado, hidratación y persistencia de materias; propaga renombrado y eliminación a las tareas. |
+| `src/lib/subjects.ts` | Validación, combinación, resumen y asignación inmutable de materias. |
+| `src/lib/subjectStorage.ts` | Adaptador de localStorage de materias tolerante a datos inválidos. |
 | `src/lib/taskStorage.ts` | Adaptador de localStorage tolerante a datos inválidos o acceso bloqueado. |
 | `src/data/initialTasks.ts` | Datos de ejemplo serializables enviados desde la página. |
 | `public/assets/` | SVG originales de Figma. |
 | `tests/tasks.test.mjs` | Pruebas de dominio y almacenamiento; Node ejecuta directamente los módulos TypeScript. |
+| `tests/subjects.test.mjs` | Pruebas de dominio y almacenamiento de materias. |
 | `tests/smoke.mjs` | Prueba Chrome de interfaz, persistencia y adaptación. |
 
 ## Servidor y cliente
@@ -71,7 +78,7 @@ las medidas originales. Se importan tema y utilidades sin Preflight para mantene
 el reset existente y la geometría de los SVG. El estilo y los breakpoints de Figma
 se conservan; no se añaden componentes visuales por la migración.
 
-Materias, Mensajes, Ajustes y notificaciones continúan sin flujos
+Mensajes, Ajustes y notificaciones continúan sin flujos
 definidos. Progreso, fechas, promedio y actividades son ejemplos.
 
 ## Verificación
@@ -112,3 +119,24 @@ textos antiguos; nunca se interpretan como fechas reales. Las tarjetas priorizan
 dueDate cuando existe. `src/lib/calendar.ts` contiene validación y cuadrícula mensual;
 scheduleTask aplica fechas de forma inmutable. El día actual se obtiene del
 navegador después de hidratar, evitando diferencias con el servidor y cambios por UTC.
+
+## Materias
+
+`/materias` es una página de servidor que compone Navigation y SubjectsClient.
+Permite crear, renombrar y eliminar materias, ver las tareas de cada una con su
+total y pendientes, crear tareas dentro de la materia seleccionada y asignar,
+cambiar o quitar la materia de cualquier tarea.
+
+Task conserva `subject?: string`; no se migran tareas. Las materias creadas se
+guardan en una clave nueva, `campus-hub-subjects-v1`, como lista de nombres únicos
+(máximo 80 caracteres). La lista visible combina esa clave con las materias que
+ya usan las tareas, de modo que los datos existentes aparecen sin migración y una
+clave ausente o corrupta solo deja las materias derivadas de las tareas.
+Los nombres duplicados se rechazan sin distinguir mayúsculas.
+
+Renombrar una materia actualiza las tareas que la usan. Eliminarla requiere
+confirmación y deja sus tareas sin materia; nunca borra tareas. useSubjects lee
+storage tras hidratar y solo guarda cuando está listo, igual que useTasks.
+
+Materias aparece en la navegación de escritorio. El diseño móvil no incluye su
+icono, por lo que la barra inferior se conserva y `/tareas` enlaza a Materias.

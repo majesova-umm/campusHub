@@ -94,5 +94,51 @@ try {
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     await page.screenshot({path:join(tmpdir(),`campus-calendario-${width}.png`),fullPage:true});
   }
-  assert.deepEqual(errors,[]);console.log('PASS: responsive widths, assets, empty input, button, Enter, counters, persistence, search, runtime errors.');
+  for (const width of [1440,390]) {
+    await page.setViewportSize({width,height:844});
+    if (width === 1440) {
+      const nav = page.getByRole('navigation',{name:'Navegación principal',exact:true});
+      await nav.getByRole('link',{name:'Materias',exact:true}).click();
+    } else {
+      await page.goto(`${baseUrl}/tareas`);await page.locator('[data-tasks-ready="true"]').waitFor();
+      await page.getByRole('link',{name:'Ver materias'}).click();
+    }
+    await page.waitForURL('**/materias');
+    await page.locator('[data-tasks-ready="true"]').waitFor();
+    const subject = `Física ${width}`;
+    await page.getByRole('button',{name:'Agregar materia'}).click();
+    await page.getByRole('alert').filter({hasText:'Escribe el nombre'}).waitFor();
+    await page.locator('#new-subject').fill(subject);
+    await page.getByRole('button',{name:'Agregar materia'}).click();
+    await page.locator('#new-subject').fill(subject.toUpperCase());
+    await page.getByRole('button',{name:'Agregar materia'}).click();
+    await page.getByRole('alert').filter({hasText:'Ya existe'}).waitFor();
+    const card = page.locator('.subject-card').filter({hasText:subject});
+    await card.getByRole('button',{name:`Ver tareas de ${subject}`}).click();
+    await page.locator('#new-task').fill(`Tarea de ${subject}`);
+    await page.getByRole('button',{name:'Agregar tarea'}).click();
+    assert.match(await card.textContent(),/1 tarea · 1 pendiente/);
+    const unassigned = page.locator('.subject-unassigned').first();
+    await unassigned.locator('select').selectOption(subject);
+    assert.match(await card.textContent(),/2 tareas · 2 pendientes/);
+    await page.reload(); await page.locator('[data-tasks-ready="true"]').waitFor();
+    assert.match(await card.textContent(),/2 tareas/);
+    await card.getByRole('button',{name:`Renombrar ${subject}`}).click();
+    await card.getByRole('textbox',{name:'Nombre de la materia'}).fill(`${subject} II`);
+    await card.getByRole('button',{name:'Guardar nombre'}).click();
+    const renamed = page.locator('.subject-card').filter({hasText:`${subject} II`});
+    assert.match(await renamed.textContent(),/2 tareas/);
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    await page.screenshot({path:join(tmpdir(),`campus-materias-${width}.png`),fullPage:true});
+    await renamed.getByRole('button',{name:`Eliminar ${subject} II`}).click();
+    await renamed.getByRole('button',{name:'Cancelar eliminación'}).click();
+    await renamed.getByRole('button',{name:`Eliminar ${subject} II`}).click();
+    await renamed.getByRole('button',{name:'Confirmar eliminación'}).click();
+    assert.equal(await renamed.count(),0);
+    await page.locator('.subject-unassigned').filter({hasText:`Tarea de ${subject}`}).waitFor();
+  }
+  await page.evaluate(()=>localStorage.setItem('campus-hub-subjects-v1','{'));await page.reload();await page.locator('[data-tasks-ready="true"]').waitFor();
+  await page.evaluate(()=>{localStorage.setItem('campus-hub-tasks-v1','[]');localStorage.setItem('campus-hub-subjects-v1','[]');});await page.reload();await page.locator('[data-tasks-ready="true"]').waitFor();
+  await page.getByText('No tienes materias. Agrega tu primera materia.').waitFor();
+  assert.deepEqual(errors,[]);console.log('PASS: responsive widths, assets, empty input, button, Enter, counters, persistence, search, subjects, runtime errors.');
 } finally {await browser.close();}

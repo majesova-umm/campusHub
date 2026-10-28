@@ -5,7 +5,7 @@ const navigationItems = [
   { label: 'Inicio', icon: 'Home', href: '/', mobile: true },
   { label: 'Tareas', icon: 'Check', href: '/tareas', mobile: true },
   { label: 'Calendario', icon: 'Calendar', href: '/calendario', mobile: true },
-  { label: 'Materias', icon: 'Book', mobile: false },
+  { label: 'Materias', icon: 'Book', href: '/materias', mobile: false },
   { label: 'Mensajes', icon: 'Message', mobile: true },
   { label: 'Ajustes', icon: 'Settings', mobile: false },
 ];

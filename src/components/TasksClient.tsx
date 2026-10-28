@@ -13,7 +13,7 @@ export default function TasksClient({ initialTasks }: { initialTasks: Task[] }) 
   return (
     <main className="main" data-tasks-ready={isReady}>
       <h1>Tareas</h1>
-      <p className="muted">Organiza y actualiza tus tareas académicas.</p>
+      <p className="muted">Organiza y actualiza tus tareas académicas. <a className="text-link" href="/materias">Ver materias</a></p>
       <div className="tasks-search">
         <label htmlFor="tasks-search">Buscar tareas o materias</label>
         <input id="tasks-search" type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar tareas o materias" />

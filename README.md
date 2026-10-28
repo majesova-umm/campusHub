@@ -43,7 +43,7 @@ rechaza títulos vacíos. El buscador filtra títulos y materias. Las tareas nue
 no tienen materia ni fecha asignadas.
 
 No hay backend ni base de datos. Los indicadores académicos y las actividades son
-ejemplos. Inicio enlaza a `/` y Tareas abre la gestión en `/tareas`; Calendario abre `/calendario`; los demás destinos no tienen vistas
+ejemplos. Inicio enlaza a `/` y Tareas abre la gestión en `/tareas`; Calendario abre `/calendario`; Materias abre `/materias`; los demás destinos no tienen vistas
 definidas. La migración no agrega pantallas ni elementos visuales.
 
 ## Verificación
@@ -62,7 +62,7 @@ npm run test:smoke
 
 La prueba usa BASE_URL si está definido; de lo contrario, http://127.0.0.1:5173.
 Verifica cinco anchos, imágenes, creación, búsqueda, persistencia, almacenamiento
-corrupto y lista vacía. Las capturas se guardan en el directorio temporal del sistema.
+corrupto, lista vacía y el flujo de materias. Las capturas se guardan en el directorio temporal del sistema.
 No hay script de lint configurado.
 
 Compara manualmente 1440 × 1024 y 390 × 844 con Figma y prueba títulos largos,
@@ -85,3 +85,12 @@ El menú Calendario abre una vista mensual con navegación entre meses y acceso 
 Hoy. Selecciona un día para ver o crear tareas con fecha de entrega. Puedes
 programar tareas sin fecha y cambiar o quitar una fecha existente. Los textos
 antiguos como “En 2 días” se conservan sin asignarles una fecha inventada.
+
+## Materias
+
+Materias (`/materias`) permite crear, renombrar y eliminar materias, ver el total
+de tareas y pendientes de cada una, agregar tareas a la materia seleccionada y
+asignar o quitar la materia de cualquier tarea. Los nombres no pueden estar
+vacíos ni repetirse. Eliminar una materia pide confirmación y conserva sus tareas
+sin materia. Las materias se guardan en `campus-hub-subjects-v1` y se combinan con
+las que ya tienen las tareas. En móvil se accede desde el enlace de `/tareas`.
