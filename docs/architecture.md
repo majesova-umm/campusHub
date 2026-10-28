@@ -53,6 +53,18 @@ importados por DashboardClient forman parte de su árbol cliente; no se agrega
 `use client` a cada componente de presentación. PageHeader y TaskForm declaran
 su interactividad; useTasks solo se utiliza en el cliente.
 
+`next.config.ts` envía cabeceras de seguridad en todas las rutas: Content-Security-Policy,
+X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy y
+Permissions-Policy. La CSP solo permite recursos del mismo origen, bloquea objetos,
+cambios de base y envíos de formularios externos, e impide incrustar la app en
+iframes (`frame-ancestors 'none'`). App Router inserta scripts en línea para
+hidratar, por lo que `script-src` incluye `'unsafe-inline'`; una CSP con nonces
+obligaría a renderizar cada página en el servidor. En desarrollo se añaden
+`'unsafe-eval'` y `ws:` para React y la recarga en caliente. Cualquier recurso
+externo nuevo (fuentes, analíticas, APIs) debe agregarse explícitamente a la CSP.
+No usar `dangerouslySetInnerHTML`: la CSP es una defensa adicional, no sustituye
+el escape de React.
+
 No hay secretos, endpoints ni mutaciones del servidor. Si se introducen, deberán
 validarse entradas y permisos en el servidor. Los tipos TypeScript no sustituyen
 la validación de datos externos.
@@ -96,7 +108,8 @@ definidos. Progreso, fechas, promedio y actividades son ejemplos.
 - `npm run build`: compilación y prerender de Next.js.
 - `npm run test:smoke`: servidor activo, Chrome instalado; verifica anchos de 320,
   390, 768, 1024 y 1440 px, recursos, creación, búsqueda, persistencia, datos
-  corruptos, estado vacío y ausencia de errores de ejecución o hidratación.
+  corruptos, estado vacío, cabeceras de seguridad, bloqueo en iframe y ausencia
+  de errores de ejecución, hidratación o CSP.
 
 ## Gestión de tareas
 

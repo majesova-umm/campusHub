@@ -62,7 +62,8 @@ npm run test:smoke
 
 La prueba usa BASE_URL si está definido; de lo contrario, http://127.0.0.1:5173.
 Verifica cinco anchos, imágenes, creación, búsqueda, persistencia, almacenamiento
-corrupto, lista vacía y los flujos de materias y mensajes. Las capturas se guardan en el directorio temporal del sistema.
+corrupto, lista vacía, los flujos de materias y mensajes, las cabeceras de seguridad (CSP)
+y que la app no pueda incrustarse en un iframe. Las capturas se guardan en el directorio temporal del sistema.
 No hay script de lint configurado.
 
 Compara manualmente 1440 × 1024 y 390 × 844 con Figma y prueba títulos largos,

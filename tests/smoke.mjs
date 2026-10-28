@@ -11,6 +11,19 @@ try {
   const response = await page.request.get(baseUrl);
   assert.equal(response.status(), 200);
   assert.match(await response.text(), /¡Hola, Ana!/);
+  for (const path of ['/', '/mensajes', '/assets/desktop-imgIconBook.svg']) {
+    const headers = (await page.request.get(baseUrl + path)).headers();
+    assert.match(headers['content-security-policy'] ?? '', /frame-ancestors 'none'/, `CSP en ${path}`);
+    assert.match(headers['content-security-policy'] ?? '', /object-src 'none'/, `CSP en ${path}`);
+    assert.equal(headers['x-frame-options'], 'DENY', `X-Frame-Options en ${path}`);
+    assert.equal(headers['x-content-type-options'], 'nosniff', `nosniff en ${path}`);
+  }
+  const framer = await browser.newPage();
+  await framer.setContent(`<iframe src="${baseUrl}"></iframe>`);
+  await framer.waitForTimeout(1000);
+  // Chrome reemplaza el iframe bloqueado por su página de error en lugar de la app.
+  assert.equal(framer.frames().some(frame => frame.url().startsWith(baseUrl)), false, 'La app no debe mostrarse dentro de un iframe');
+  await framer.close();
   for(const width of [1440,1024,768,390,320]) {
     await page.setViewportSize({width,height:width===1440?1024:844});
     await page.goto(baseUrl);await page.locator('[data-tasks-ready="true"]').waitFor();await page.evaluate(async()=>{await document.fonts.ready;await Promise.all([...document.images].map(img=>img.decode().catch(()=>{})));});
