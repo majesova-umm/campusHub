@@ -1,3 +1,5 @@
+import { isCalendarDate } from './calendar.ts';
+
 export type TaskStatus = 'pending' | 'progress' | 'completed';
 
 export interface Task {
@@ -6,6 +8,7 @@ export interface Task {
   status: TaskStatus;
   subject?: string;
   date?: string;
+  dueDate?: string;
   urgent?: boolean;
 }
 
@@ -20,6 +23,7 @@ export function isTask(value: unknown): value is Task {
     task.title.length <= taskTitleMaxLength &&
     (task.status === 'pending' || task.status === 'progress' || task.status === 'completed') &&
     (task.subject === undefined || typeof task.subject === 'string') &&
+    (task.dueDate === undefined || isCalendarDate(task.dueDate)) &&
     (task.date === undefined || typeof task.date === 'string') &&
     (task.urgent === undefined || typeof task.urgent === 'boolean')
   );
@@ -53,4 +57,28 @@ export function filterTasks(tasks: Task[], query: string): Task[] {
   return tasks.filter(task =>
     `${task.title} ${task.subject ?? ''}`.toLocaleLowerCase('es').includes(normalizedQuery),
   );
+}
+
+export function updateTask(tasks: Task[], id: string, changes: Pick<Task, 'title' | 'status'>): Task[] {
+  const error = validateTaskTitle(changes.title);
+  if (error) throw new Error(error);
+  if (!['pending', 'progress', 'completed'].includes(changes.status)) {
+    throw new Error('Selecciona un estado válido.');
+  }
+  return tasks.map(task => task.id === id
+    ? { ...task, title: changes.title.trim(), status: changes.status }
+    : task);
+}
+
+export function removeTask(tasks: Task[], id: string): Task[] {
+  return tasks.filter(task => task.id !== id);
+}
+
+export function scheduleTask(tasks: Task[], id: string, dueDate: string): Task[] {
+  if (dueDate && !isCalendarDate(dueDate)) throw new Error('Selecciona una fecha válida.');
+  return tasks.map(task => {
+    if (task.id !== id) return task;
+    const { dueDate: previous, ...rest } = task;
+    return dueDate ? { ...rest, dueDate } : rest;
+  });
 }

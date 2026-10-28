@@ -4,9 +4,9 @@ import React, { useRef, useState } from 'react';
 import { taskTitleMaxLength, validateTaskTitle } from '../lib/tasks';
 import { Icon } from './Visuals';
 
-interface TaskFormProps { onAdd: (title: string) => void; }
+interface TaskFormProps { onAdd: (title: string) => void; disabled?: boolean; }
 
-export default function TaskForm({ onAdd }: TaskFormProps) {
+export default function TaskForm({ onAdd, disabled }: TaskFormProps) {
   const [title, setTitle] = useState('');
   const [announcement, setAnnouncement] = useState('');
   const input = useRef<HTMLInputElement>(null);
@@ -35,6 +35,7 @@ export default function TaskForm({ onAdd }: TaskFormProps) {
           <input
             ref={input}
             id="new-task"
+            disabled={disabled}
             value={title}
             onChange={event => {
               setTitle(event.target.value);
@@ -44,7 +45,7 @@ export default function TaskForm({ onAdd }: TaskFormProps) {
             required
             maxLength={taskTitleMaxLength}
           />
-          <button className="add-button" type="submit">
+          <button className="add-button" type="submit" disabled={disabled}>
             <Icon name="Plus" />
             Agregar tarea
           </button>

@@ -21,7 +21,7 @@ export function StatCard({ label, compactLabel, value, detail, icon, urgent, tea
       </p>
       <p className={`stat-value ${urgent ? 'urgent' : ''}`}>{value}</p>
       {link ? (
-        <a className="stat-detail" href="#tareas">{detail}</a>
+        <a className="stat-detail" href="/tareas">{detail}</a>
       ) : (
         <p className={`stat-detail ${urgent ? 'muted' : ''}`}>{detail}</p>
       )}

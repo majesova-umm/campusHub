@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { countPendingTasks, createTask } from '../lib/tasks';
+import { countPendingTasks, createTask, updateTask, removeTask, scheduleTask } from '../lib/tasks';
 import type { Task } from '../lib/tasks';
 import { loadTasks, saveTasks } from '../lib/taskStorage';
 
@@ -20,10 +20,22 @@ export function useTasks(initialTasks: Task[]) {
     if (isReady) saveTasks(tasks);
   }, [tasks, isReady]);
 
-  function addTask(title: string): void {
+  function addTask(title: string, dueDate?: string): void {
     const task = createTask(title, crypto.randomUUID());
-    setTasks(currentTasks => [...currentTasks, task]);
+    setTasks(currentTasks => scheduleTask([...currentTasks, task], task.id, dueDate ?? ''));
   }
 
-  return { tasks, pending: countPendingTasks(tasks), addTask, isReady };
+  function editTask(id: string, changes: Pick<Task, 'title' | 'status'>): void {
+    setTasks(currentTasks => updateTask(currentTasks, id, changes));
+  }
+
+  function deleteTask(id: string): void {
+    setTasks(currentTasks => removeTask(currentTasks, id));
+  }
+
+  function setTaskDate(id: string, dueDate: string): void {
+    setTasks(currentTasks => scheduleTask(currentTasks, id, dueDate));
+  }
+
+  return { setTaskDate, tasks, pending: countPendingTasks(tasks), addTask, editTask, deleteTask, isReady };
 }

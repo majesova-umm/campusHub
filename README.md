@@ -43,7 +43,7 @@ rechaza títulos vacíos. El buscador filtra títulos y materias. Las tareas nue
 no tienen materia ni fecha asignadas.
 
 No hay backend ni base de datos. Los indicadores académicos y las actividades son
-ejemplos. Inicio y Tareas enlazan a secciones; los demás destinos no tienen vistas
+ejemplos. Inicio enlaza a `/` y Tareas abre la gestión en `/tareas`; Calendario abre `/calendario`; los demás destinos no tienen vistas
 definidas. La migración no agrega pantallas ni elementos visuales.
 
 ## Verificación
@@ -67,3 +67,21 @@ No hay script de lint configurado.
 
 Compara manualmente 1440 × 1024 y 390 × 844 con Figma y prueba títulos largos,
 navegación con Tab y acceso a todas las tareas desde móvil.
+
+## Gestión de tareas
+
+Las tarjetas permiten editar el título y seleccionar Pendiente, En progreso o
+Completada. El contador incluye pendientes y tareas en progreso. La eliminación
+requiere confirmación explícita en la tarjeta y puede cancelarse. Las operaciones
+conservan materia, fecha, urgencia e identificador de las tareas existentes.
+`src/lib/tasks.ts` valida y aplica cambios de forma inmutable; `useTasks` coordina
+creación, edición, eliminación y persistencia con la misma clave localStorage.
+Durante la hidratación se muestra carga y se desactiva la creación. La lista
+vacía y las búsquedas sin resultados muestran mensajes específicos.
+
+## Calendario
+
+El menú Calendario abre una vista mensual con navegación entre meses y acceso a
+Hoy. Selecciona un día para ver o crear tareas con fecha de entrega. Puedes
+programar tareas sin fecha y cambiar o quitar una fecha existente. Los textos
+antiguos como “En 2 días” se conservan sin asignarles una fecha inventada.

@@ -552,4 +552,56 @@ padding:12px 9px;
 }
 
 
+.task-actions {
+@apply flex flex-wrap items-center gap-[var(--space-sm)];
+grid-column:1/-1;
+}
+.task-actions button,.task-actions select,.task-editor input {
+font:inherit;
+color:var(--ink);
+background:var(--white);
+border:1px solid var(--border);
+border-radius:8px;
+padding:8px 12px;
+min-height:40px;
+max-width:100%;
+}
+.task-actions button:hover { background:var(--pale-blue); }
+select:focus-visible { outline:2px solid var(--action); outline-offset:3px; }
+.task-editor { grid-column:1/-1; width:100%; overflow-wrap:anywhere; }
+.task-editor input { width:100%; margin-bottom:var(--space-sm); }
+.task-empty { margin-top:var(--space-lg); color:var(--muted); }
+button:disabled { opacity:.6; cursor:wait; }
+
+.tasks-search { margin:var(--space-xl) 0; }
+.tasks-search label { display:block; margin-bottom:var(--space-sm); }
+.tasks-search input {
+font:inherit;
+width:100%;
+max-width:480px;
+min-height:44px;
+padding:var(--space-md);
+border:1px solid var(--border);
+border-radius:10px;
+background:var(--white);
+}
+
+.calendar-panel { margin-top:var(--space-xl); }
+.calendar-toolbar { margin-bottom:var(--space-lg); }
+.calendar-toolbar h2 { flex:1; text-align:center; text-transform:capitalize; }
+.calendar-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:var(--space-xs); }
+.calendar-weekday { text-align:center; color:var(--muted); font-size:12px; }
+.calendar-day { min-width:0; min-height:72px; border-radius:8px; background:var(--fog); padding:8px 2px; }
+.calendar-day small { display:block; color:var(--action); margin-top:4px; }
+.calendar-day.selected { background:var(--pale-blue); outline:2px solid var(--action); outline-offset:-2px; }
+.calendar-day[aria-current="date"] { font-weight:bold; }
+.calendar-date-label { display:block; font-size:13px; margin-top:var(--space-md); overflow-wrap:anywhere; }
+.calendar-date-label input { display:block; font:inherit; max-width:100%; min-height:44px; margin-top:4px; padding:8px; border:1px solid var(--border); border-radius:8px; background:var(--white); color:var(--ink); }
+.calendar-unscheduled { padding:var(--space-md); border:1px solid var(--border); border-radius:10px; overflow-wrap:anywhere; }
+@media(max-width:767px) {
+.calendar-panel { padding:var(--space-md); }
+.calendar-toolbar h2 { font-size:17px; }
+.calendar-day { min-height:52px; }
+}
+
 }

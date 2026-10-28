@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createTask, countPendingTasks, filterTasks, isTaskList } from '../src/lib/tasks.ts';
+import { createTask, countPendingTasks, filterTasks, isTaskList, updateTask, removeTask, scheduleTask } from '../src/lib/tasks.ts';
 import { loadTasks, saveTasks, taskStorageKey } from '../src/lib/taskStorage.ts';
 
 const tasks = [
@@ -62,4 +62,30 @@ test('recupera datos válidos y usa fallback ante contenido corrupto o storage b
     if (previousStorage) Object.defineProperty(globalThis, 'localStorage', previousStorage);
     else delete globalThis.localStorage;
   }
+});
+
+test('edita sin perder metadatos, cambia el contador y elimina solo la tarea indicada', () => {
+  const original = [{ ...tasks[0], date: 'Mañana', urgent: true }, tasks[1]];
+  const edited = updateTask(original, '1', { title: '  Repasar diseño  ', status: 'completed' });
+  assert.deepEqual(edited[0], { ...original[0], title: 'Repasar diseño', status: 'completed' });
+  assert.equal(countPendingTasks(edited), 1);
+  assert.equal(original[0].title, 'Leer capítulo');
+  assert.throws(() => updateTask(original, '1', { title: ' ', status: 'pending' }));
+  assert.throws(() => updateTask(original, '1', { title: 'Título', status: 'invalid' }));
+  assert.deepEqual(removeTask(edited, '1'), [tasks[1]]);
+  assert.deepEqual(removeTask(edited, 'missing'), edited);
+  assert.deepEqual(removeTask([tasks[0]], '1'), []);
+});
+
+test('programa entregas sin perder datos y valida fechas reales', () => {
+  const scheduled = scheduleTask(tasks, '1', '2028-02-29');
+  assert.equal(scheduled[0].dueDate, '2028-02-29');
+  assert.equal(scheduled[0].subject, 'Diseño');
+  assert.equal(tasks[0].dueDate, undefined);
+  assert.deepEqual(scheduleTask(scheduled, '1', ''), tasks);
+  for (const date of ['2026-02-29', '2026-04-31', 'ayer', '2026-1-01']) {
+    assert.throws(() => scheduleTask(tasks, '1', date));
+    assert.equal(isTaskList([{...tasks[0], dueDate:date}]), false);
+  }
+  assert.equal(isTaskList(scheduled), true);
 });

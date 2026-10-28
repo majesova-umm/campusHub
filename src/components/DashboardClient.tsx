@@ -16,7 +16,7 @@ interface DashboardClientProps {
 }
 
 export default function DashboardClient({ initialTasks, progressPanel, activityPanel }: DashboardClientProps) {
-  const { tasks, pending, addTask, isReady } = useTasks(initialTasks);
+  const { tasks, pending, addTask, editTask, deleteTask, isReady } = useTasks(initialTasks);
   const [query, setQuery] = useState('');
 
   return (
@@ -38,7 +38,7 @@ export default function DashboardClient({ initialTasks, progressPanel, activityP
           />
         </section>
         <div className="dashboard-grid">
-          <Tasks tasks={filterTasks(tasks, query)} pending={pending} onAdd={addTask} />
+          <Tasks tasks={filterTasks(tasks, query)} pending={pending} onAdd={addTask} onEdit={editTask} onDelete={deleteTask} isReady={isReady} hasQuery={Boolean(query.trim())} />
           {progressPanel}
           {activityPanel}
         </div>

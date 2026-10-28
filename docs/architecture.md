@@ -10,6 +10,8 @@ App Router y tipos TypeScript; no incorpora base de datos.
 | Ruta | Responsabilidad |
 | --- | --- |
 | `src/app/layout.tsx` | Layout de servidor, idioma, metadatos, fuentes locales y CSS global. |
+| `src/app/tareas/page.tsx` | Página de servidor para la gestión de tareas; marca Tareas como destino activo. |
+| `src/components/TasksClient.tsx` | Búsqueda y gestión de tareas en `/tareas`, reutilizando Tasks y useTasks. |
 | `src/app/page.tsx` | Página de servidor: compone navegación, paneles estáticos y cliente interactivo. |
 | `src/app/globals.css` | Tema Tailwind, tokens y clases de componentes con @apply; reglas específicas del diseño. |
 | `src/components/DashboardClient.tsx` | Límite cliente: búsqueda, estado de tareas e indicadores dependientes del estado. |
@@ -69,7 +71,7 @@ las medidas originales. Se importan tema y utilidades sin Preflight para mantene
 el reset existente y la geometría de los SVG. El estilo y los breakpoints de Figma
 se conservan; no se añaden componentes visuales por la migración.
 
-Calendario, Materias, Mensajes, Ajustes y notificaciones continúan sin flujos
+Materias, Mensajes, Ajustes y notificaciones continúan sin flujos
 definidos. Progreso, fechas, promedio y actividades son ejemplos.
 
 ## Verificación
@@ -80,3 +82,33 @@ definidos. Progreso, fechas, promedio y actividades son ejemplos.
 - `npm run test:smoke`: servidor activo, Chrome instalado; verifica anchos de 320,
   390, 768, 1024 y 1440 px, recursos, creación, búsqueda, persistencia, datos
   corruptos, estado vacío y ausencia de errores de ejecución o hidratación.
+
+## Gestión de tareas
+
+Las tarjetas permiten editar el título y seleccionar Pendiente, En progreso o
+Completada. El contador incluye pendientes y tareas en progreso. La eliminación
+requiere confirmación explícita en la tarjeta y puede cancelarse. Las operaciones
+conservan materia, fecha, urgencia e identificador de las tareas existentes.
+`src/lib/tasks.ts` valida y aplica cambios de forma inmutable; `useTasks` coordina
+creación, edición, eliminación y persistencia con la misma clave localStorage.
+Durante la hidratación se muestra carga y se desactiva la creación. La lista
+vacía y las búsquedas sin resultados muestran mensajes específicos.
+
+Inicio (`/`) y Tareas (`/tareas`) usan navegación por rutas. Navigation recibe
+el destino activo desde la página de servidor. Ambas vistas comparten el mismo
+adaptador de localStorage; cada entrada recupera las tareas tras hidratar.
+
+## Calendario
+
+`/calendario` es una página de servidor que compone Navigation y CalendarClient.
+El cliente reutiliza useTasks y presenta un mes de lunes a domingo, navegación
+entre meses, botón Hoy y entregas del día seleccionado. Permite crear tareas en
+ese día, editar estado/título, eliminar con confirmación y cambiar o quitar fecha.
+Las tareas sin fecha se pueden programar desde la misma pantalla.
+
+Task incorpora `dueDate?: string` con formato YYYY-MM-DD validado como fecha real.
+Se guarda con la clave existente, sin migrar ni borrar datos. `date` conserva los
+textos antiguos; nunca se interpretan como fechas reales. Las tarjetas priorizan
+dueDate cuando existe. `src/lib/calendar.ts` contiene validación y cuadrícula mensual;
+scheduleTask aplica fechas de forma inmutable. El día actual se obtiene del
+navegador después de hidratar, evitando diferencias con el servidor y cambios por UTC.
